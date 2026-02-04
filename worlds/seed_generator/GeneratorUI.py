@@ -23,6 +23,103 @@ from kivymd.uix.textfield import MDTextField
 from Launcher import get_exe
 from Utils import is_linux, is_macos, is_windows, local_path, parse_yamls, open_filename
 
+
+kv = """
+<OutlinedGrid@MDGridLayout>:
+    canvas:
+        Color:
+            rgb: 1, 1, 1
+        Line:
+            width: 2
+            rectangle: self.x, self.y, self.width, self.height
+
+<MarkupLabel@SelectableLabel>
+    markup: True
+    size_hint: 1, None
+    padding: [2, 2, 2, 2]
+    on_ref_press: app.on_ref_press(*args)
+    adaptive_height: True
+
+MDBoxLayout:
+    orientation: "vertical"
+    padding: [10, 10, 10, 10]
+    spacing: 10
+    md_bg_color: self.theme_cls.backgroundColor
+
+    MDButton:
+        text: "Archipelago Generator"
+        size_hint: None, 0.1
+        pos_hint: {"right": 1}
+        on_press: app.open_file()
+
+        MDButtonIcon:
+            icon: "file-plus"
+
+        MDButtonText:
+            text: "Add File"
+
+    ScrollView:
+        canvas:
+            Color:
+                rgb: 1, 1, 1
+            Line:
+                width: 2
+                rectangle: self.x, self.y, self.width, self.height
+
+        padding: [10, 10, 10, 10]
+        MDGridLayout:
+            id: player_table
+            adaptive_height: True
+            row_default_height: 30
+            cols: 5
+            pos_hint: {"center_x": 0.5}
+
+    MDBoxLayout:
+        orientation: "horizontal"
+        adaptive_height: True
+        spacing: "5dp"
+
+        MDLabel:
+            text: "Additional options :"
+            height: "30dp"
+            adaptive_width: True
+
+        TextInput:
+            id: options_field
+            multiline: False
+            height: "30dp"
+            size_hint_y: None
+            background_color: app.theme_cls.backgroundColor
+            cursor_color: app.theme_cls.primaryColor
+            foreground_color: app.theme_cls.primaryColor
+
+    MDButton:
+        style: "filled"
+        size_hint: None, 0.1
+        pos_hint: {"center_x": 0.5}
+        on_press: app.generate()
+
+        MDButtonText:
+            text: "Generate"
+
+    MDLabel:
+        style: "filled"
+        size_hint: None, 0.1
+        text: "Output"
+
+    UILog:
+        id: ui_log
+        viewclass: "MarkupLabel"
+        padding: [5, 5, 5, 5]
+
+        canvas.before:
+            Color:
+                rgba: (1, 1, 1, 0.2)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+"""
+
 async def show_in_file_explorer(path: str) -> None:
     """Open the specified path in the native file explorer for the user's operating system
     
@@ -91,7 +188,7 @@ class GeneratorApp(ThemedApp):
         Window.bind(on_drop_begin=self._on_drop_begin)
         Window.bind(on_drop_end=self._on_drop_end)
 
-        ui = Builder.load_file(local_path("data", "generator.kv"))
+        ui = Builder.load_string(kv)
         self.player_table = ui.ids.player_table
         self.ui_log = ui.ids.ui_log
         self.options_field = ui.ids.options_field
@@ -285,8 +382,10 @@ class GeneratorApp(ThemedApp):
             background_color=self.theme_cls.onErrorContainerColor,
         ).open()
 
-
-if __name__ == "__main__":
+def launch():
     loop = asyncio.get_event_loop()
     loop.run_until_complete(GeneratorApp().async_run())
     loop.close()
+
+if __name__ == "__main__":
+    launch()
